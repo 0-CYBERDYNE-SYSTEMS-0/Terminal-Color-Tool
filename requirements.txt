@@ -3,13 +3,15 @@
 # Install with: pip install -r requirements.txt
 
 # Core dependencies
-Pillow>=9.0.0          # Image processing
-scikit-learn>=1.0.0    # Machine learning for color clustering
-numpy>=1.20.0         # Array operations
+Pillow>=9.0.0              # Image processing
+scikit-learn>=1.0.0        # Machine learning for color clustering
+numpy>=1.20.0              # Array operations
+
+# Web framework
+fastapi>=0.100.0           # API framework
+uvicorn>=0.23.0            # ASGI server
+python-multipart>=0.0.6    # File upload support
+jinja2>=3.1.0              # HTML templating
 
 # Optional: For better performance
-# opencv-python>=4.5.0  # Alternative image processing (optional)
-
-# Documentation (optional)
-# sphinx>=4.0.0         # For building documentation
-# sphinx-rtd-theme>=1.0.0 # For documentation theme
+# opencv-python>=4.5.0     # Alternative image processing (optional)

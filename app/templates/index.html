@@ -1,0 +1,177 @@
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Terminal Color Theme Creator</title>
+     <script src="https://cdn.tailwindcss.com"></script>
+     <script>
+         tailwind.config = {
+             theme: {
+                 extend: {
+                     fontFamily: {
+                         mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
+                     }
+                 }
+             }
+         }
+     </script>
+     <style>
+         .color-swatch { transition: background-color 0.15s ease; }
+         .slider-container input[type="range"] {
+             -webkit-appearance: none;
+             height: 6px;
+             border-radius: 3px;
+             background: #374151;
+         }
+         .slider-container input[type="range"]::-webkit-slider-thumb {
+             -webkit-appearance: none;
+             width: 14px;
+             height: 14px;
+             border-radius: 50%;
+             cursor: pointer;
+         }
+         .slider-r::-webkit-slider-thumb { background: #ef4444; }
+         .slider-g::-webkit-slider-thumb { background: #22c55e; }
+         .slider-b::-webkit-slider-thumb { background: #3b82f6; }
+         .drop-zone.dragover { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
+         .terminal-window { font-family: 'Consolas', 'Monaco', monospace; }
+     </style>
+ </head>
+ <body class="bg-gray-900 text-gray-100 min-h-screen">
+     <!-- Header -->
+     <header class="bg-gray-800 border-b border-gray-700 px-6 py-4">
+         <div class="flex items-center justify-between max-w-7xl mx-auto">
+             <h1 class="text-xl font-bold text-white">Terminal Color Theme Creator</h1>
+             <div class="flex items-center gap-4">
+                 <input type="text" id="theme-name" value="My Theme" 
+                     class="bg-gray-700 border border-gray-600 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500">
+                 <button onclick="showExportModal()" 
+                     class="bg-blue-600 hover:bg-blue-700 px-4 py-1.5 rounded font-medium text-sm transition">
+                     Export Theme
+                 </button>
+             </div>
+         </div>
+     </header>
+ 
+     <!-- Main Content -->
+     <main class="max-w-7xl mx-auto p-6">
+         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+             <!-- Left Column: Image Upload & Presets -->
+             <div class="lg:col-span-3 space-y-6">
+                 <!-- Image Upload -->
+                 <section class="bg-gray-800 rounded-lg p-4">
+                     <h2 class="text-sm font-semibold text-gray-300 mb-3">Extract from Image</h2>
+                     <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:border-gray-500 transition">
+                         <div id="drop-content">
+                             <svg class="w-10 h-10 mx-auto text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                             </svg>
+                             <p class="text-sm text-gray-400">Drop image here or click to upload</p>
+                         </div>
+                         <img id="preview-image" class="hidden max-h-32 mx-auto rounded" alt="Preview">
+                     </div>
+                     <input type="file" id="file-input" accept="image/*" class="hidden">
+                     <button id="extract-btn" disabled 
+                         class="w-full mt-3 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded text-sm font-medium transition">
+                         Extract Colors
+                     </button>
+                 </section>
+ 
+                 <!-- Theme Presets -->
+                 <section class="bg-gray-800 rounded-lg p-4">
+                     <h2 class="text-sm font-semibold text-gray-300 mb-3">Theme Presets</h2>
+                     <div id="presets-container" class="space-y-2"></div>
+                 </section>
+             </div>
+ 
+             <!-- Center Column: Color Picker -->
+             <div class="lg:col-span-5">
+                 <section class="bg-gray-800 rounded-lg p-4">
+                     <h2 class="text-sm font-semibold text-gray-300 mb-3">Color Controls</h2>
+                     <div id="color-picker" class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2"></div>
+                 </section>
+             </div>
+ 
+             <!-- Right Column: Terminal Preview -->
+             <div class="lg:col-span-4">
+                 <section class="bg-gray-800 rounded-lg overflow-hidden">
+                     <h2 class="text-sm font-semibold text-gray-300 p-4 pb-2">Terminal Preview</h2>
+                     <div id="terminal-preview" class="terminal-window"></div>
+                 </section>
+             </div>
+         </div>
+     </main>
+ 
+     <!-- Export Modal -->
+     <div id="export-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+         <div class="bg-gray-800 rounded-lg w-full max-w-md mx-4 p-6">
+             <div class="flex items-center justify-between mb-4">
+                 <h3 class="text-lg font-semibold">Export Theme</h3>
+                 <button onclick="hideExportModal()" class="text-gray-400 hover:text-white">
+                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                     </svg>
+                 </button>
+             </div>
+             <div class="space-y-2 mb-6">
+                 <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
+                     <input type="radio" name="export-format" value="shell" checked class="text-blue-500">
+                     <div>
+                         <div class="font-medium text-sm">Shell Script</div>
+                         <div class="text-xs text-gray-400">Easy setup for most terminals</div>
+                     </div>
+                 </label>
+                 <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
+                     <input type="radio" name="export-format" value="json" class="text-blue-500">
+                     <div>
+                         <div class="font-medium text-sm">JSON</div>
+                         <div class="text-xs text-gray-400">Save theme for later use</div>
+                     </div>
+                 </label>
+                 <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
+                     <input type="radio" name="export-format" value="xresources" class="text-blue-500">
+                     <div>
+                         <div class="font-medium text-sm">Xresources</div>
+                         <div class="text-xs text-gray-400">For Linux X11 terminals</div>
+                     </div>
+                 </label>
+                 <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
+                     <input type="radio" name="export-format" value="iterm2" class="text-blue-500">
+                     <div>
+                         <div class="font-medium text-sm">iTerm2</div>
+                         <div class="text-xs text-gray-400">For macOS iTerm2</div>
+                     </div>
+                 </label>
+                 <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
+                     <input type="radio" name="export-format" value="winterm" class="text-blue-500">
+                     <div>
+                         <div class="font-medium text-sm">Windows Terminal</div>
+                         <div class="text-xs text-gray-400">For Windows Terminal settings</div>
+                     </div>
+                 </label>
+                 <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
+                     <input type="radio" name="export-format" value="ansi" class="text-blue-500">
+                     <div>
+                         <div class="font-medium text-sm">ANSI Codes</div>
+                         <div class="text-xs text-gray-400">Raw color export variables</div>
+                     </div>
+                 </label>
+             </div>
+             <div class="flex gap-3">
+                 <button onclick="hideExportModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded font-medium transition">
+                     Cancel
+                 </button>
+                 <button onclick="exportTheme()" class="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-medium transition">
+                     Download
+                 </button>
+             </div>
+         </div>
+     </div>
+ 
+     <script src="/static/js/colorPicker.js"></script>
+     <script src="/static/js/preview.js"></script>
+     <script src="/static/js/export.js"></script>
+     <script src="/static/js/app.js"></script>
+ </body>
+ </html>
