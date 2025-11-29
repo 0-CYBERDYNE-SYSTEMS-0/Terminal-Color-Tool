@@ -151,6 +151,13 @@
                      </div>
                  </label>
                  <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
+                     <input type="radio" name="export-format" value="wezterm" class="text-blue-500">
+                     <div>
+                         <div class="font-medium text-sm">WezTerm</div>
+                         <div class="text-xs text-gray-400">For WezTerm terminal emulator</div>
+                     </div>
+                 </label>
+                 <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
                      <input type="radio" name="export-format" value="ansi" class="text-blue-500">
                      <div>
                          <div class="font-medium text-sm">ANSI Codes</div>
@@ -158,6 +165,15 @@
                      </div>
                  </label>
              </div>
+            <div class="mb-6 p-3 bg-gray-700 rounded">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="auto-install-wezterm" class="text-blue-500 rounded">
+                    <div>
+                        <div class="font-medium text-sm">Auto-install to WezTerm config</div>
+                        <div class="text-xs text-gray-400">Directly add theme to .wezterm.lua file (WezTerm only)</div>
+                    </div>
+                </label>
+            </div>
              <div class="flex gap-3">
                  <button onclick="hideExportModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded font-medium transition">
                      Cancel

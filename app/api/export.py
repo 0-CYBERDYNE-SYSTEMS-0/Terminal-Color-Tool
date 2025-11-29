@@ -1,6 +1,8 @@
 """Export API endpoint."""
 
 import json
+import os
+from pathlib import Path
 from typing import Literal
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -10,8 +12,13 @@ router = APIRouter()
 
 
 class ExportRequest(BaseModel):
-    format: Literal["ansi", "json", "xresources", "shell", "registry", "iterm2", "winterm"]
+    format: Literal["ansi", "json", "xresources", "shell", "registry", "iterm2", "winterm", "wezterm"]
     theme_data: dict
+
+
+class InstallWeztermRequest(BaseModel):
+    theme_name: str
+    colors: dict
 
 
 @router.post("/export")
@@ -28,6 +35,7 @@ async def export_theme(req: ExportRequest):
         "registry": _generate_registry,
         "iterm2": _generate_iterm2,
         "winterm": _generate_winterm,
+        "wezterm": _generate_wezterm,
     }
     
     extensions = {
@@ -38,6 +46,7 @@ async def export_theme(req: ExportRequest):
         "registry": ".reg",
         "iterm2": ".itermcolors",
         "winterm": ".json",
+        "wezterm": ".lua",
     }
     
     content_types = {
@@ -48,6 +57,7 @@ async def export_theme(req: ExportRequest):
         "registry": "text/plain",
         "iterm2": "text/plain",
         "winterm": "application/json",
+        "wezterm": "text/plain",
     }
     
     if req.format not in generators:
@@ -61,6 +71,91 @@ async def export_theme(req: ExportRequest):
         media_type=content_types[req.format],
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+@router.post("/install-wezterm")
+async def install_wezterm_theme(req: InstallWeztermRequest):
+    """Install WezTerm theme directly to user's .wezterm.lua file."""
+    # Find WezTerm config location
+    home_dir = Path.home()
+    possible_locations = [
+        home_dir / ".wezterm.lua",
+        home_dir / ".config" / "wezterm" / "wezterm.lua"
+    ]
+    
+    config_path = None
+    for location in possible_locations:
+        if location.exists() or location.parent.exists():
+            config_path = location
+            break
+    
+    if not config_path:
+        # Create default location if none exists
+        config_path = home_dir / ".wezterm.lua"
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Generate the theme content
+    theme_content = _generate_wezterm(req.colors, req.theme_name)
+    
+    try:
+        # Read existing config if it exists
+        existing_config = ""
+        if config_path.exists():
+            existing_config = config_path.read_text()
+        
+        # Check if the theme already exists
+        sanitized_name = req.theme_name.replace('-', '_').replace(' ', '_').lower()
+        theme_pattern = f"config.color_schemes['{sanitized_name}']"
+        
+        if theme_pattern in existing_config:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Theme '{req.theme_name}' already exists in {config_path}"
+            )
+        
+        # Ensure the file has the basic structure
+        if not existing_config.strip():
+            # Create new config file
+            new_config = f"""local wezterm = require 'wezterm'
+local config = wezterm.config_builder()
+
+{theme_content}
+
+return config
+"""
+        else:
+            # Add to existing config
+            if "config.color_schemes = config.color_schemes or {{}}" not in existing_config:
+                # Insert before 'return config' or at end
+                if "return config" in existing_config:
+                    insertion_point = existing_config.find("return config")
+                    new_config = (
+                        existing_config[:insertion_point] + 
+                        "\n" + theme_content.strip() + "\n\n" + 
+                        existing_config[insertion_point:]
+                    )
+                else:
+                    new_config = existing_config.rstrip() + "\n\n" + theme_content.strip() + "\n"
+            else:
+                # Just add the theme
+                new_config = existing_config.rstrip() + "\n" + theme_content.strip() + "\n"
+        
+        # Write the updated config
+        config_path.write_text(new_config)
+        
+        return {
+            "success": True,
+            "message": f"Theme '{req.theme_name}' installed successfully",
+            "config_path": str(config_path),
+            "theme_name": sanitized_name,
+            "instructions": f"Theme installed! Reload WezTerm with Ctrl+Shift+R and then use the theme picker with Ctrl+Shift+P to select '{sanitized_name}'."
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to install theme: {str(e)}"
+        )
 
 
 def _generate_ansi(colors: dict, theme_name: str) -> str:
@@ -229,6 +324,48 @@ def _generate_winterm(colors: dict, theme_name: str) -> str:
     }
     
     return json.dumps(theme, indent=2)
+
+
+def _generate_wezterm(colors: dict, theme_name: str) -> str:
+    """Generate WezTerm color scheme."""
+    # Sanitize theme name for use in Lua
+    sanitized_name = theme_name.replace('-', '_').replace(' ', '_').lower()
+    
+    content = f"""-- Add {theme_name} color scheme
+config.color_schemes = config.color_schemes or {{}}
+config.color_schemes['{sanitized_name}'] = {{
+  foreground = '{colors.get('foreground', '#ffffff')}',
+  background = '{colors.get('background', '#000000')}',
+  cursor_bg = '{colors.get('cursor', colors.get('foreground', '#ffffff'))}',
+  cursor_fg = '{colors.get('background', '#000000')}',
+  cursor_border = '{colors.get('cursor', colors.get('foreground', '#ffffff'))}',
+  selection_fg = '{colors.get('foreground', '#ffffff')}',
+  selection_bg = '{colors.get('selection_bg', colors.get('blue', '#0000ff'))}',
+  split = '{colors.get('split', colors.get('bright_yellow', '#ffff00'))}',
+  ansi = {{
+    '{colors.get('black', '#000000')}',
+    '{colors.get('red', '#ff0000')}',
+    '{colors.get('green', '#00ff00')}',
+    '{colors.get('yellow', '#ffff00')}',
+    '{colors.get('blue', '#0000ff')}',
+    '{colors.get('magenta', '#ff00ff')}',
+    '{colors.get('cyan', '#00ffff')}',
+    '{colors.get('white', '#ffffff')}'
+  }},
+  brights = {{
+    '{colors.get('bright_black', '#808080')}',
+    '{colors.get('bright_red', '#ff8080')}',
+    '{colors.get('bright_green', '#80ff80')}',
+    '{colors.get('bright_yellow', '#ffff80')}',
+    '{colors.get('bright_blue', '#8080ff')}',
+    '{colors.get('bright_magenta', '#ff80ff')}',
+    '{colors.get('bright_cyan', '#80ffff')}',
+    '{colors.get('bright_white', '#ffffff')}'
+  }}
+}}
+"""
+
+    return content
 
 
 def _hex_to_rgb(hex_color: str) -> tuple:
