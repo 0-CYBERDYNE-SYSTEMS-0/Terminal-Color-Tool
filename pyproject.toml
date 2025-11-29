@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "theme-viz"
+version = "0.1.0"
+description = "Terminal color theme creator with image reference and interactive controls"
+authors = [{name = "User"}]
+requires-python = ">=3.8"
+dependencies = [
+    "Pillow",
+    "scikit-learn",
+    "numpy",
+]
+
+[project.scripts]
+theme-viz = "main:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/theme-viz"
+Repository = "https://github.com/yourusername/theme-viz.git"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=6.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
