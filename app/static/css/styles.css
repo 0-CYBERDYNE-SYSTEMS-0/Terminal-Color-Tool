@@ -60,7 +60,7 @@ body.has-background-image::before {
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
-    filter: blur(15px);
+    filter: blur(40px);
     z-index: -1;
 }
 
