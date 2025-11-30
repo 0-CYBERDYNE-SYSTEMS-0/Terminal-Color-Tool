@@ -195,6 +195,210 @@ def test_export_formats():
     return True
 
 
+def test_export_alacritty():
+    """Test Alacritty YAML export format."""
+    print("Testing Alacritty export...")
+
+    from app.api.export import _generate_alacritty
+
+    test_colors = {
+        'background': '#1e1e1e',
+        'foreground': '#d4d4d4',
+        'cursor': '#ffffff',
+        'black': '#1e1e1e',
+        'red': '#f48771',
+        'green': '#8dc891',
+        'yellow': '#f2d479',
+        'blue': '#6ca0e8',
+        'magenta': '#c678dd',
+        'cyan': '#56b6c2',
+        'white': '#d4d4d4',
+        'bright_black': '#4d4d4d',
+        'bright_red': '#f48771',
+        'bright_green': '#8dc891',
+        'bright_yellow': '#f2d479',
+        'bright_blue': '#6ca0e8',
+        'bright_magenta': '#c678dd',
+        'bright_cyan': '#56b6c2',
+        'bright_white': '#ffffff'
+    }
+
+    result = _generate_alacritty(test_colors, 'Test Theme')
+
+    assert 'colors:' in result
+    assert 'primary:' in result
+    assert 'normal:' in result
+    assert 'bright:' in result
+    assert test_colors['background'] in result
+    assert test_colors['foreground'] in result
+    assert 'black:' in result
+    assert 'white:' in result
+
+    print("✓ Alacritty export format works correctly")
+    return True
+
+
+def test_export_kitty():
+    """Test Kitty conf export format."""
+    print("Testing Kitty export...")
+
+    from app.api.export import _generate_kitty
+
+    test_colors = {
+        'background': '#1e1e1e',
+        'foreground': '#d4d4d4',
+        'cursor': '#ffffff',
+        'black': '#1e1e1e',
+        'red': '#f48771',
+        'green': '#8dc891',
+        'yellow': '#f2d479',
+        'blue': '#6ca0e8',
+        'magenta': '#c678dd',
+        'cyan': '#56b6c2',
+        'white': '#d4d4d4',
+        'bright_black': '#4d4d4d',
+        'bright_red': '#f48771',
+        'bright_green': '#8dc891',
+        'bright_yellow': '#f2d479',
+        'bright_blue': '#6ca0e8',
+        'bright_magenta': '#c678dd',
+        'bright_cyan': '#56b6c2',
+        'bright_white': '#ffffff'
+    }
+
+    result = _generate_kitty(test_colors, 'Test Theme')
+
+    assert f"background {test_colors['background']}" in result
+    assert f"foreground {test_colors['foreground']}" in result
+    assert 'color0' in result
+    assert 'color15' in result
+    assert '# Test Theme' in result
+
+    print("✓ Kitty export format works correctly")
+    return True
+
+
+def test_export_hyper():
+    """Test Hyper JavaScript export format."""
+    print("Testing Hyper export...")
+
+    from app.api.export import _generate_hyper
+
+    test_colors = {
+        'background': '#1e1e1e',
+        'foreground': '#d4d4d4',
+        'cursor': '#ffffff',
+        'black': '#1e1e1e',
+        'red': '#f48771',
+        'green': '#8dc891',
+        'yellow': '#f2d479',
+        'blue': '#6ca0e8',
+        'magenta': '#c678dd',
+        'cyan': '#56b6c2',
+        'white': '#d4d4d4',
+        'bright_black': '#4d4d4d',
+        'bright_red': '#f48771',
+        'bright_green': '#8dc891',
+        'bright_yellow': '#f2d479',
+        'bright_blue': '#6ca0e8',
+        'bright_magenta': '#c678dd',
+        'bright_cyan': '#56b6c2',
+        'bright_white': '#ffffff'
+    }
+
+    result = _generate_hyper(test_colors, 'Test Theme')
+
+    assert 'exports.config' in result
+    assert 'termCSS' in result
+    assert 'colors:' in result
+    assert 'black:' in result
+    assert 'brightWhite:' in result
+
+    print("✓ Hyper export format works correctly")
+    return True
+
+
+def test_export_ghostty():
+    """Test Ghostty TOML export format."""
+    print("Testing Ghostty export...")
+
+    from app.api.export import _generate_ghostty
+
+    test_colors = {
+        'background': '#1e1e1e',
+        'foreground': '#d4d4d4',
+        'cursor': '#ffffff',
+        'black': '#1e1e1e',
+        'red': '#f48771',
+        'green': '#8dc891',
+        'yellow': '#f2d479',
+        'blue': '#6ca0e8',
+        'magenta': '#c678dd',
+        'cyan': '#56b6c2',
+        'white': '#d4d4d4',
+        'bright_black': '#4d4d4d',
+        'bright_red': '#f48771',
+        'bright_green': '#8dc891',
+        'bright_yellow': '#f2d479',
+        'bright_blue': '#6ca0e8',
+        'bright_magenta': '#c678dd',
+        'bright_cyan': '#56b6c2',
+        'bright_white': '#ffffff'
+    }
+
+    result = _generate_ghostty(test_colors, 'Test Theme')
+
+    assert '[theme]' in result
+    assert 'name = "Test Theme"' in result
+    assert f'background = "{test_colors["background"]}"' in result
+    assert '0 = "' in result
+    assert '15 = "' in result
+
+    print("✓ Ghostty export format works correctly")
+    return True
+
+
+def test_export_terminal():
+    """Test Mac Terminal.app plist export format."""
+    print("Testing Terminal.app export...")
+
+    from app.api.export import _generate_terminal
+
+    test_colors = {
+        'background': '#1e1e1e',
+        'foreground': '#d4d4d4',
+        'cursor': '#ffffff',
+        'black': '#1e1e1e',
+        'red': '#f48771',
+        'green': '#8dc891',
+        'yellow': '#f2d479',
+        'blue': '#6ca0e8',
+        'magenta': '#c678dd',
+        'cyan': '#56b6c2',
+        'white': '#d4d4d4',
+        'bright_black': '#4d4d4d',
+        'bright_red': '#f48771',
+        'bright_green': '#8dc891',
+        'bright_yellow': '#f2d479',
+        'bright_blue': '#6ca0e8',
+        'bright_magenta': '#c678dd',
+        'bright_cyan': '#56b6c2',
+        'bright_white': '#ffffff'
+    }
+
+    result = _generate_terminal(test_colors, 'Test Theme')
+
+    assert '<?xml version' in result
+    assert '<plist' in result
+    assert '<key>BackgroundColor</key>' in result
+    assert '<key>Ansi0Color</key>' in result
+    assert '<key>Ansi15Color</key>' in result
+
+    print("✓ Terminal.app export format works correctly")
+    return True
+
+
+
 def test_preset_themes():
     """Test preset themes."""
     print("Testing preset themes...")
@@ -290,12 +494,17 @@ def run_all_tests():
     print("=" * 60)
     print("Terminal Color Theme Creator - Test Suite")
     print("=" * 60)
-    
+
     tests = [
         test_file_structure,
         test_image_processor,
         test_color_extraction,
         test_export_formats,
+        test_export_alacritty,
+        test_export_kitty,
+        test_export_hyper,
+        test_export_ghostty,
+        test_export_terminal,
         test_preset_themes
     ]
     
