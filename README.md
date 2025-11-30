@@ -4,6 +4,13 @@ A web-based application for creating, visualizing, and exporting terminal color 
 
 Built for developers who live in the terminal. Perfect for vibe coders and AI agent builders who want their terminals to match their aesthetic.
 
+<img width="1313" height="801" alt="Screenshot 2025-11-30 at 02 07 29" src="https://github.com/user-attachments/assets/e43ac7c0-aff1-4b93-a99d-ef79df57e81a" />
+
+
+<img width="1316" height="816" alt="Screenshot 2025-11-30 at 02 02 00" src="https://github.com/user-attachments/assets/ff746581-db2e-49c2-b868-b5b00d6cd6a5" />
+
+
+
 ## Overview
 
 Terminal Color Tool provides a modern interface for designing terminal color schemes. The application supports image-based color extraction using K-means clustering, real-time preview, and export to 8 different terminal formats including WezTerm, iTerm2, Windows Terminal, and Xresources.
