@@ -84,6 +84,7 @@ yarn-error.log*
 themes/custom/
 *.theme
 
+.claude/
 .claude.md
 claude.md
 agents.md
