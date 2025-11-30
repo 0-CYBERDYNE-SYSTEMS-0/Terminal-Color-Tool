@@ -13,7 +13,7 @@ from fastapi.requests import Request
 
 from app.api import colors, export
 
-app = FastAPI(title="Terminal Color Theme Creator")
+app = FastAPI(title="Terminal_Color_Tool")
 
 BASE_DIR = Path(__file__).resolve().parent
 

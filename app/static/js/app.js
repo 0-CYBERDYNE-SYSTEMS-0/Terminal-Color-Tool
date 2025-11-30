@@ -142,19 +142,33 @@ const THEME_PRESETS = {
      }
      
      function setBackgroundImage(imageUrl) {
-         // Set the uploaded image as body background image
-         body.style.backgroundImage = `url(${imageUrl})`;
-         body.classList.add('has-background-image');
+         // Create a style element to dynamically set the background for ::before pseudo-element
+         let styleEl = document.getElementById('dynamic-background-style');
+         if (!styleEl) {
+             styleEl = document.createElement('style');
+             styleEl.id = 'dynamic-background-style';
+             document.head.appendChild(styleEl);
+         }
          
-         // Add transition for smooth effect
-         body.style.transition = 'background-image 0.5s ease-in-out';
+         styleEl.textContent = `
+             body.has-background-image::before {
+                 background-image: url(${imageUrl}) !important;
+             }
+         `;
+         
+         body.classList.add('has-background-image');
      }
      
      function removeBackgroundImage() {
-         // Remove background image and class
-         body.style.backgroundImage = '';
+         // Remove the dynamic style and class
+         const styleEl = document.getElementById('dynamic-background-style');
+         if (styleEl) {
+             styleEl.remove();
+         }
+         
          body.classList.remove('has-background-image');
-         body.style.transition = '';
+         body.style.backgroundImage = '';
+         body.style.background = '';
      }
      
      // Add clear functionality when user wants to change image
