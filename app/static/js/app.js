@@ -63,16 +63,22 @@ const THEME_PRESETS = {
      
      Object.entries(THEME_PRESETS).forEach(([name, colors]) => {
          const btn = document.createElement('button');
-         btn.className = 'w-full flex items-center gap-3 p-2 bg-gray-700 hover:bg-gray-600 rounded transition text-left';
+         btn.className = 'preset-card w-full flex items-center gap-4 p-4 bg-surface-800/50 hover:bg-surface-700/50 rounded-xl transition-all text-left border border-surface-700/50 hover:border-surface-600/50 group';
          btn.innerHTML = `
-             <div class="flex gap-0.5">
-                 <div class="w-3 h-6 rounded-l" style="background-color: ${colors.background}"></div>
-                 <div class="w-3 h-6" style="background-color: ${colors.red}"></div>
-                 <div class="w-3 h-6" style="background-color: ${colors.green}"></div>
-                 <div class="w-3 h-6" style="background-color: ${colors.blue}"></div>
-                 <div class="w-3 h-6 rounded-r" style="background-color: ${colors.foreground}"></div>
+             <div class="flex gap-1.5">
+                 <div class="w-4 h-8 rounded-l-lg shadow-sm" style="background-color: ${colors.background}"></div>
+                 <div class="w-4 h-8 shadow-sm" style="background-color: ${colors.red}"></div>
+                 <div class="w-4 h-8 shadow-sm" style="background-color: ${colors.green}"></div>
+                 <div class="w-4 h-8 shadow-sm" style="background-color: ${colors.blue}"></div>
+                 <div class="w-4 h-8 rounded-r-lg shadow-sm" style="background-color: ${colors.foreground}"></div>
              </div>
-             <span class="text-sm">${name}</span>
+             <div class="flex-1">
+                 <div class="text-sm font-medium text-surface-100 group-hover:text-accent-400 transition-colors">${name}</div>
+                 <div class="text-xs text-surface-500 mt-0.5">Click to apply</div>
+             </div>
+             <svg class="w-4 h-4 text-surface-600 group-hover:text-accent-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+             </svg>
          `;
          btn.addEventListener('click', () => {
              updateAllColors(colors);
