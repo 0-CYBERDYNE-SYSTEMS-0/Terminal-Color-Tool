@@ -1,0 +1,58 @@
+MIT License
+
+Copyright (c) 2025 Terminal Color Tool Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## Contributing
+
+Contributions are welcome! By contributing to this project, you agree that your
+contributions will be licensed under the MIT License.
+
+### How to Contribute
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature-name`)
+3. Make your changes
+4. Run the test suite (`uv run python test_theme_generator.py`)
+5. Commit your changes with a clear commit message
+6. Push to your fork (`git push origin feature/your-feature-name`)
+7. Open a Pull Request
+
+### Pull Request Guidelines
+
+- Keep changes focused and atomic
+- Include tests for new functionality
+- Update documentation as needed
+- Follow existing code style
+- Ensure all tests pass
+
+### Development Setup
+
+See README.md for setup instructions.
+
+### Community Guidelines
+
+- Be respectful and welcoming
+- Provide constructive feedback
+- Help review others' contributions
+- Report issues with detailed reproduction steps
+- Suggest improvements via GitHub Issues
+
+Thank you for contributing to Terminal Color Tool!
