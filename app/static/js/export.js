@@ -10,11 +10,14 @@ function showExportModal() {
  function updateWeztermCheckboxVisibility() {
      const selectedFormat = document.querySelector('input[name="export-format"]:checked').value;
      const checkboxContainer = document.getElementById('auto-install-wezterm').closest('.bg-gray-700');
+     const weztermOptionsContainer = document.getElementById('wezterm-export-options');
      
      if (selectedFormat === 'wezterm') {
          checkboxContainer.style.display = 'block';
+         weztermOptionsContainer.style.display = 'block';
      } else {
          checkboxContainer.style.display = 'none';
+         weztermOptionsContainer.style.display = 'none';
          document.getElementById('auto-install-wezterm').checked = false;
      }
  }
@@ -34,6 +37,12 @@ function showExportModal() {
      const themeName = document.getElementById('theme-name').value || 'My Theme';
      const colors = getCurrentColors();
      const autoInstall = document.getElementById('auto-install-wezterm').checked;
+     
+     // Handle WezTerm specifics
+     let weztermMode = 'complete';
+     if (format === 'wezterm') {
+         weztermMode = document.querySelector('input[name="wezterm-mode"]:checked').value;
+     }
      
      // Handle WezTerm auto-install
      if (format === 'wezterm' && autoInstall) {
@@ -72,7 +81,8 @@ function showExportModal() {
              headers: { 'Content-Type': 'application/json' },
              body: JSON.stringify({
                  format: format,
-                 theme_data: { name: themeName, colors: colors }
+                 theme_data: { name: themeName, colors: colors },
+                 wezterm_mode: format === 'wezterm' ? weztermMode : null
              })
          });
          

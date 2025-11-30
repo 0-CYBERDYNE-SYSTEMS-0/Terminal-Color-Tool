@@ -14,6 +14,7 @@ router = APIRouter()
 class ExportRequest(BaseModel):
     format: Literal["ansi", "json", "xresources", "shell", "registry", "iterm2", "winterm", "wezterm"]
     theme_data: dict
+    wezterm_mode: Literal["complete", "theme-only"] | None = None
 
 
 class InstallWeztermRequest(BaseModel):
@@ -21,10 +22,49 @@ class InstallWeztermRequest(BaseModel):
     colors: dict
 
 
+def _validate_colors(colors: dict) -> dict:
+    """Validate and add missing required color fields with fallbacks."""
+    # Required colors with their fallbacks
+    required_colors = {
+        'foreground': {'default': '#ffffff', 'fallback': None},
+        'background': {'default': '#000000', 'fallback': None},
+        'cursor': {'default': None, 'fallback': 'foreground'},
+        'black': {'default': '#000000', 'fallback': 'background'},
+        'red': {'default': '#ff0000', 'fallback': None},
+        'green': {'default': '#00ff00', 'fallback': None},
+        'yellow': {'default': '#ffff00', 'fallback': None},
+        'blue': {'default': '#0000ff', 'fallback': None},
+        'magenta': {'default': '#ff00ff', 'fallback': None},
+        'cyan': {'default': '#00ffff', 'fallback': None},
+        'white': {'default': '#ffffff', 'fallback': 'foreground'},
+        'bright_black': {'default': '#808080', 'fallback': 'black'},
+        'bright_red': {'default': '#ff8080', 'fallback': 'red'},
+        'bright_green': {'default': '#80ff80', 'fallback': 'green'},
+        'bright_yellow': {'default': '#ffff80', 'fallback': 'yellow'},
+        'bright_blue': {'default': '#8080ff', 'fallback': 'blue'},
+        'bright_magenta': {'default': '#ff80ff', 'fallback': 'magenta'},
+        'bright_cyan': {'default': '#80ffff', 'fallback': 'cyan'},
+        'bright_white': {'default': '#ffffff', 'fallback': 'white'},
+    }
+    
+    # Create a copy to work with
+    validated_colors = colors.copy()
+    
+    # Fill in missing colors
+    for color_name, config in required_colors.items():
+        if color_name not in validated_colors or not validated_colors[color_name]:
+            if config['fallback'] and config['fallback'] in validated_colors:
+                validated_colors[color_name] = validated_colors[config['fallback']]
+            elif config['default']:
+                validated_colors[color_name] = config['default']
+    
+    return validated_colors
+
+
 @router.post("/export")
 async def export_theme(req: ExportRequest):
     """Export theme in the specified format."""
-    colors = req.theme_data.get("colors", {})
+    colors = _validate_colors(req.theme_data.get("colors", {}))
     theme_name = req.theme_data.get("name", "My Theme")
     
     generators = {
@@ -63,7 +103,11 @@ async def export_theme(req: ExportRequest):
     if req.format not in generators:
         raise HTTPException(status_code=400, detail=f"Unsupported format: {req.format}")
     
-    content = generators[req.format](colors, theme_name)
+    if req.format == 'wezterm':
+        theme_only = (req.wezterm_mode == 'theme-only')
+        content = generators[req.format](colors, theme_name, theme_only)
+    else:
+        content = generators[req.format](colors, theme_name)
     filename = f"{theme_name.replace(' ', '_')}{extensions[req.format]}"
     
     return Response(
@@ -75,8 +119,14 @@ async def export_theme(req: ExportRequest):
 
 @router.post("/install-wezterm")
 async def install_wezterm_theme(req: InstallWeztermRequest):
-    """Install WezTerm theme directly to user's .wezterm.lua file."""
-    # Find WezTerm config location
+    """Install WezTerm theme directly to user's .wezterm.lua file.
+    
+    This does TWO things (both required for themes to work):
+    1. Adds theme definition to get_builtin_color_schemes() override
+    2. Adds handler in color picker callback to apply the theme
+    """
+    colors = _validate_colors(req.colors)
+    
     home_dir = Path.home()
     possible_locations = [
         home_dir / ".wezterm.lua",
@@ -85,60 +135,131 @@ async def install_wezterm_theme(req: InstallWeztermRequest):
     
     config_path = None
     for location in possible_locations:
-        if location.exists() or location.parent.exists():
+        if location.exists():
             config_path = location
             break
     
     if not config_path:
-        # Create default location if none exists
-        config_path = home_dir / ".wezterm.lua"
-        config_path.parent.mkdir(parents=True, exist_ok=True)
+        raise HTTPException(
+            status_code=400,
+            detail="No .wezterm.lua config found. Please create one first with the color picker pattern."
+        )
     
-    # Generate the theme content
-    theme_content = _generate_wezterm(req.colors, req.theme_name)
+    sanitized_name = req.theme_name.replace('-', '_').replace(' ', '_').lower()
+    
+    # Theme definition to add before "return schemes"
+    theme_definition = f"""
+  -- Theme: {req.theme_name}
+  schemes['{sanitized_name}'] = {{
+    foreground = '{colors.get('foreground', '#ffffff')}',
+    background = '{colors.get('background', '#000000')}',
+    cursor_bg = '{colors.get('cursor', colors.get('foreground', '#ffffff'))}',
+    cursor_fg = '{colors.get('background', '#000000')}',
+    cursor_border = '{colors.get('cursor', colors.get('foreground', '#ffffff'))}',
+    selection_fg = '{colors.get('foreground', '#ffffff')}',
+    selection_bg = '{colors.get('selection_bg', colors.get('blue', '#0000ff'))}',
+    split = '{colors.get('split', colors.get('bright_yellow', '#ffff00'))}',
+    ansi = {{
+      '{colors.get('black', '#000000')}',
+      '{colors.get('red', '#ff0000')}',
+      '{colors.get('green', '#00ff00')}',
+      '{colors.get('yellow', '#ffff00')}',
+      '{colors.get('blue', '#0000ff')}',
+      '{colors.get('magenta', '#ff00ff')}',
+      '{colors.get('cyan', '#00ffff')}',
+      '{colors.get('white', '#ffffff')}'
+    }},
+    brights = {{
+      '{colors.get('bright_black', '#808080')}',
+      '{colors.get('bright_red', '#ff8080')}',
+      '{colors.get('bright_green', '#80ff80')}',
+      '{colors.get('bright_yellow', '#ffff80')}',
+      '{colors.get('bright_blue', '#8080ff')}',
+      '{colors.get('bright_magenta', '#ff80ff')}',
+      '{colors.get('bright_cyan', '#80ffff')}',
+      '{colors.get('bright_white', '#ffffff')}'
+    }}
+  }}
+"""
+    
+    # Handler to add in color picker callback (before the else clause)
+    handler_code = f"elseif id == '{sanitized_name}' then\n                win:set_config_overrides {{ colors = wezterm.get_builtin_color_schemes().{sanitized_name} }}"
     
     try:
-        # Read existing config if it exists
-        existing_config = ""
-        if config_path.exists():
-            existing_config = config_path.read_text()
+        existing_config = config_path.read_text()
         
-        # Check if the theme already exists
-        sanitized_name = req.theme_name.replace('-', '_').replace(' ', '_').lower()
-        theme_pattern = f"config.color_schemes['{sanitized_name}']"
-        
-        if theme_pattern in existing_config:
+        # Check if theme already exists
+        if f"schemes['{sanitized_name}']" in existing_config:
             raise HTTPException(
                 status_code=400, 
                 detail=f"Theme '{req.theme_name}' already exists in {config_path}"
             )
         
-        # Ensure the file has the basic structure
-        if not existing_config.strip():
-            # Create new config file
-            new_config = f"""local wezterm = require 'wezterm'
-local config = wezterm.config_builder()
-
-{theme_content}
-
-return config
-"""
+        # Verify required patterns exist
+        if "return schemes" not in existing_config:
+            raise HTTPException(
+                status_code=400,
+                detail="Config missing 'return schemes' - needs get_builtin_color_schemes override pattern."
+            )
+        
+        # STEP 1: Insert theme definition before "return schemes"
+        lines = existing_config.split('\n')
+        theme_inserted = False
+        
+        for i, line in enumerate(lines):
+            if "return schemes" in line and not theme_inserted:
+                theme_lines = theme_definition.strip().split('\n')
+                for j, theme_line in enumerate(theme_lines):
+                    lines.insert(i + j, theme_line)
+                theme_inserted = True
+                break
+        
+        if not theme_inserted:
+            raise HTTPException(status_code=400, detail="Failed to insert theme definition.")
+        
+        new_config = '\n'.join(lines)
+        
+        # STEP 2: Insert handler in color picker callback
+        # Find the "else" clause that handles built-in schemes and insert before it
+        # Pattern: look for "else" after custom theme handlers like "if id == 'farm'"
+        
+        # Find the color picker callback section
+        import re
+        
+        # Look for the pattern: existing elseif or if for custom themes, then else for built-in
+        # We need to insert our elseif before the final "else" in the theme selection callback
+        
+        # Find "-- Built-in scheme" or the else that leads to color_scheme = id
+        else_pattern = r"(\s+)(else\s*\n\s*-- Built-in)"
+        match = re.search(else_pattern, new_config)
+        
+        if match:
+            indent = match.group(1)
+            # Insert our handler before the else
+            insert_pos = match.start()
+            new_config = (
+                new_config[:insert_pos] + 
+                f"{indent}{handler_code}\n" + 
+                new_config[insert_pos:]
+            )
         else:
-            # Add to existing config
-            if "config.color_schemes = config.color_schemes or {{}}" not in existing_config:
-                # Insert before 'return config' or at end
-                if "return config" in existing_config:
-                    insertion_point = existing_config.find("return config")
-                    new_config = (
-                        existing_config[:insertion_point] + 
-                        "\n" + theme_content.strip() + "\n\n" + 
-                        existing_config[insertion_point:]
-                    )
-                else:
-                    new_config = existing_config.rstrip() + "\n\n" + theme_content.strip() + "\n"
+            # Try alternate pattern: just "else" followed by color_scheme = id
+            else_pattern2 = r"(\s+)(else\s*\n\s*.*color_scheme\s*=\s*id)"
+            match2 = re.search(else_pattern2, new_config)
+            
+            if match2:
+                indent = match2.group(1)
+                insert_pos = match2.start()
+                new_config = (
+                    new_config[:insert_pos] + 
+                    f"{indent}{handler_code}\n" + 
+                    new_config[insert_pos:]
+                )
             else:
-                # Just add the theme
-                new_config = existing_config.rstrip() + "\n" + theme_content.strip() + "\n"
+                raise HTTPException(
+                    status_code=400,
+                    detail="Could not find color picker callback else clause. Config may need manual handler addition."
+                )
         
         # Write the updated config
         config_path.write_text(new_config)
@@ -148,9 +269,11 @@ return config
             "message": f"Theme '{req.theme_name}' installed successfully",
             "config_path": str(config_path),
             "theme_name": sanitized_name,
-            "instructions": f"Theme installed! Reload WezTerm with Ctrl+Shift+R and then use the theme picker with Ctrl+Shift+P to select '{sanitized_name}'."
+            "instructions": f"Theme installed! Reload WezTerm (Ctrl+Shift+R) and use theme picker (Cmd+Shift+P) to select '{sanitized_name}'."
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -326,42 +449,233 @@ def _generate_winterm(colors: dict, theme_name: str) -> str:
     return json.dumps(theme, indent=2)
 
 
-def _generate_wezterm(colors: dict, theme_name: str) -> str:
-    """Generate WezTerm color scheme."""
+def _generate_wezterm(colors: dict, theme_name: str, theme_only: bool = False) -> str:
+    """Generate WezTerm color scheme with complete template including color picker functionality."""
     # Sanitize theme name for use in Lua
     sanitized_name = theme_name.replace('-', '_').replace(' ', '_').lower()
     
-    content = f"""-- Add {theme_name} color scheme
+    if theme_only:
+        # Only generate the theme data, not the complete config
+        return _generate_wezterm_theme_only(colors, theme_name, sanitized_name)
+    else:
+        # Generate complete config with color picker functionality
+        return _generate_wezterm_complete_config(colors, theme_name, sanitized_name)
+
+
+def _generate_wezterm_theme_only(colors: dict, theme_name: str, sanitized_name: str) -> str:
+    """Generate WezTerm theme data only for manual integration."""
+    # Extract colors with proper fallbacks
+    foreground = colors.get('foreground', '#ffffff')
+    background = colors.get('background', '#000000')
+    cursor_bg = colors.get('cursor', foreground)
+    cursor_fg = background
+    cursor_border = colors.get('cursor', foreground)
+    selection_fg = colors.get('foreground', foreground)
+    selection_bg = colors.get('selection_bg', colors.get('blue', '#0000ff'))
+    split_color = colors.get('split', colors.get('bright_yellow', '#ffff00'))
+    
+    # ANSI colors with fallbacks
+    ansi_colors = [
+        colors.get('black', '#000000'),      # black
+        colors.get('red', '#ff0000'),        # red
+        colors.get('green', '#00ff00'),      # green
+        colors.get('yellow', '#ffff00'),     # yellow
+        colors.get('blue', '#0000ff'),       # blue
+        colors.get('magenta', '#ff00ff'),    # magenta
+        colors.get('cyan', '#00ffff'),       # cyan
+        colors.get('white', '#ffffff')       # white
+    ]
+    
+    # Bright colors with fallbacks
+    bright_colors = [
+        colors.get('bright_black', '#808080'),    # bright black
+        colors.get('bright_red', '#ff8080'),      # bright red
+        colors.get('bright_green', '#80ff80'),    # bright green
+        colors.get('bright_yellow', '#ffff80'),   # bright yellow
+        colors.get('bright_blue', '#8080ff'),     # bright blue
+        colors.get('bright_magenta', '#ff80ff'),  # bright magenta
+        colors.get('bright_cyan', '#80ffff'),     # bright cyan
+        colors.get('bright_white', '#ffffff')     # bright white
+    ]
+    
+    content = f"""-- WezTerm Theme: {theme_name}
+-- Add this to your wezterm.get_builtin_color_schemes() override function
+-- and make sure to handle it in the color picker action callback
+
 config.color_schemes = config.color_schemes or {{}}
 config.color_schemes['{sanitized_name}'] = {{
-  foreground = '{colors.get('foreground', '#ffffff')}',
-  background = '{colors.get('background', '#000000')}',
-  cursor_bg = '{colors.get('cursor', colors.get('foreground', '#ffffff'))}',
-  cursor_fg = '{colors.get('background', '#000000')}',
-  cursor_border = '{colors.get('cursor', colors.get('foreground', '#ffffff'))}',
-  selection_fg = '{colors.get('foreground', '#ffffff')}',
-  selection_bg = '{colors.get('selection_bg', colors.get('blue', '#0000ff'))}',
-  split = '{colors.get('split', colors.get('bright_yellow', '#ffff00'))}',
+  foreground = '{foreground}',
+  background = '{background}',
+  cursor_bg = '{cursor_bg}',
+  cursor_fg = '{cursor_fg}',
+  cursor_border = '{cursor_border}',
+  selection_fg = '{selection_fg}',
+  selection_bg = '{selection_bg}',
+  split = '{split_color}',
   ansi = {{
-    '{colors.get('black', '#000000')}',
-    '{colors.get('red', '#ff0000')}',
-    '{colors.get('green', '#00ff00')}',
-    '{colors.get('yellow', '#ffff00')}',
-    '{colors.get('blue', '#0000ff')}',
-    '{colors.get('magenta', '#ff00ff')}',
-    '{colors.get('cyan', '#00ffff')}',
-    '{colors.get('white', '#ffffff')}'
+    '{ansi_colors[0]}', -- black
+    '{ansi_colors[1]}', -- red
+    '{ansi_colors[2]}', -- green
+    '{ansi_colors[3]}', -- yellow
+    '{ansi_colors[4]}', -- blue
+    '{ansi_colors[5]}', -- magenta
+    '{ansi_colors[6]}', -- cyan
+    '{ansi_colors[7]}', -- white
   }},
   brights = {{
-    '{colors.get('bright_black', '#808080')}',
-    '{colors.get('bright_red', '#ff8080')}',
-    '{colors.get('bright_green', '#80ff80')}',
-    '{colors.get('bright_yellow', '#ffff80')}',
-    '{colors.get('bright_blue', '#8080ff')}',
-    '{colors.get('bright_magenta', '#ff80ff')}',
-    '{colors.get('bright_cyan', '#80ffff')}',
-    '{colors.get('bright_white', '#ffffff')}'
+    '{bright_colors[0]}', -- bright black
+    '{bright_colors[1]}', -- bright red
+    '{bright_colors[2]}', -- bright green
+    '{bright_colors[3]}', -- bright yellow
+    '{bright_colors[4]}', -- bright blue
+    '{bright_colors[5]}', -- bright magenta
+    '{bright_colors[6]}', -- bright cyan
+    '{bright_colors[7]}', -- bright white
   }}
+}}
+
+-- IMPORTANT: Add this to your color picker action callback:
+-- if id == '{sanitized_name}' then
+--   win:set_config_overrides {{ colors = schemes['{sanitized_name}'] }}
+-- end
+"""
+
+    return content
+
+
+def _generate_wezterm_complete_config(colors: dict, theme_name: str, sanitized_name: str) -> str:
+    """Generate complete WezTerm config with color picker functionality."""
+    # Extract colors with proper fallbacks
+    foreground = colors.get('foreground', '#ffffff')
+    background = colors.get('background', '#000000')
+    cursor_bg = colors.get('cursor', foreground)
+    cursor_fg = background
+    cursor_border = colors.get('cursor', foreground)
+    selection_fg = colors.get('foreground', foreground)
+    selection_bg = colors.get('selection_bg', colors.get('blue', '#0000ff'))
+    split_color = colors.get('split', colors.get('bright_yellow', '#ffff00'))
+    
+    # ANSI colors with fallbacks
+    ansi_colors = [
+        colors.get('black', '#000000'),      # black
+        colors.get('red', '#ff0000'),        # red
+        colors.get('green', '#00ff00'),      # green
+        colors.get('yellow', '#ffff00'),     # yellow
+        colors.get('blue', '#0000ff'),       # blue
+        colors.get('magenta', '#ff00ff'),    # magenta
+        colors.get('cyan', '#00ffff'),       # cyan
+        colors.get('white', '#ffffff')       # white
+    ]
+    
+    # Bright colors with fallbacks
+    bright_colors = [
+        colors.get('bright_black', '#808080'),    # bright black
+        colors.get('bright_red', '#ff8080'),      # bright red
+        colors.get('bright_green', '#80ff80'),    # bright green
+        colors.get('bright_yellow', '#ffff80'),   # bright yellow
+        colors.get('bright_blue', '#8080ff'),     # bright blue
+        colors.get('bright_magenta', '#ff80ff'),  # bright magenta
+        colors.get('bright_cyan', '#80ffff'),     # bright cyan
+        colors.get('bright_white', '#ffffff')     # bright white
+    ]
+    
+    content = f"""-- Add {theme_name} color scheme with complete implementation
+local wezterm = require 'wezterm'
+
+-- Override get_builtin_color_schemes to add custom themes to picker
+local original_get_builtin_color_schemes = wezterm.get_builtin_color_schemes
+wezterm.get_builtin_color_schemes = function()
+  local schemes = original_get_builtin_color_schemes()
+  
+  -- Add {theme_name} theme
+  schemes['{sanitized_name}'] = {{
+    foreground = '{foreground}',
+    background = '{background}',
+    cursor_bg = '{cursor_bg}',
+    cursor_fg = '{cursor_fg}',
+    cursor_border = '{cursor_border}',
+    selection_fg = '{selection_fg}',
+    selection_bg = '{selection_bg}',
+    split = '{split_color}',
+    ansi = {{
+      '{ansi_colors[0]}', -- black
+      '{ansi_colors[1]}', -- red
+      '{ansi_colors[2]}', -- green
+      '{ansi_colors[3]}', -- yellow
+      '{ansi_colors[4]}', -- blue
+      '{ansi_colors[5]}', -- magenta
+      '{ansi_colors[6]}', -- cyan
+      '{ansi_colors[7]}', -- white
+    }},
+    brights = {{
+      '{bright_colors[0]}', -- bright black
+      '{bright_colors[1]}', -- bright red
+      '{bright_colors[2]}', -- bright green
+      '{bright_colors[3]}', -- bright yellow
+      '{bright_colors[4]}', -- bright blue
+      '{bright_colors[5]}', -- bright magenta
+      '{bright_colors[6]}', -- bright cyan
+      '{bright_colors[7]}', -- bright white
+    }}
+  }}
+  
+  return schemes
+end
+
+-- Add color picker key binding and action
+return {{
+  -- Theme picker shortcut (Ctrl+Shift+P)
+  keys = {{
+    key = 'P',
+    mods = 'CMD|SHIFT',
+    action = wezterm.action_callback(function(window, pane)
+      local schemes = wezterm.get_builtin_color_schemes()
+      local choices = {{}}
+      for name, scheme in pairs(schemes) do
+        -- Generate color swatches for picker
+        local label_parts = {{}}
+        if scheme.ansi then
+          for i = 1, #scheme.ansi do
+            table.insert(label_parts, {{ Background = {{ Color = scheme.ansi[i] }} }})
+            table.insert(label_parts, {{ Text = '  ' }})
+            table.insert(label_parts, 'ResetAttributes')
+            table.insert(label_parts, {{ Text = ' ' }})
+          end
+        end
+        if scheme.brights then
+          for i = 1, #scheme.brights do
+            table.insert(label_parts, {{ Background = {{ Color = scheme.brights[i] }} }})
+            table.insert(label_parts, {{ Text = '  ' }})
+            table.insert(label_parts, 'ResetAttributes')
+            table.insert(label_parts, {{ Text = ' ' }})
+          end
+        end
+        table.insert(label_parts, {{ Text = '  ' .. name }})
+        table.insert(choices, {{ label = wezterm.format(label_parts), id = name }})
+      end
+      table.sort(choices, function(a, b) return a.id < b.id end)
+      
+      window:perform_action(
+        wezterm.action.InputSelector {{
+          title = 'Choose Color Scheme',
+          choices = choices,
+          fuzzy = true,
+          action = wezterm.action_callback(function(win, _, id, label)
+            if id then
+              if id == '{sanitized_name}' then
+                -- Custom theme: use colors override for actual application
+                win:set_config_overrides {{ colors = schemes['{sanitized_name}'] }}
+              else
+                -- Built-in themes: use normal color_scheme method
+                win:set_config_overrides {{ color_scheme = id }}
+              end
+            end
+          end),
+        }},
+        pane
+      )
+    end),
+  }},
 }}
 """
 
