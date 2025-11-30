@@ -83,3 +83,8 @@ yarn-error.log*
 # Terminal color themes (user-generated)
 themes/custom/
 *.theme
+
+.claude.md
+claude.md
+agents.md
+.agents.md
