@@ -41,39 +41,27 @@ input:focus, button:focus {
 
 /* Background blur effect for uploaded images on body - !important to override conflicts */
 body.has-background-image {
-    background-image: none !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
     background-color: transparent !important;
 }
 
 body.has-background-image::before {
     content: '';
     position: fixed;
-    top: -50px;
-    left: -50px;
-    right: -50px;
-    bottom: -50px;
-    width: calc(100% + 100px);
-    height: calc(100% + 100px);
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    filter: blur(30px) brightness(0.6);
-    opacity: 0.8 !important;
-    z-index: -1;
-    transform: scale(1.05);
-}
-
-body.has-background-image::after {
-    content: '';
-    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.2);
+    background: inherit;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    filter: blur(15px);
     z-index: -1;
-    pointer-events: none;
 }
 
 body.has-background-image .glass-morphism {

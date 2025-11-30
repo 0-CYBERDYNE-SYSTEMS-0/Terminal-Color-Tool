@@ -142,32 +142,15 @@ const THEME_PRESETS = {
      }
      
      function setBackgroundImage(imageUrl) {
-         // Create a style element to dynamically set the background for ::before pseudo-element
-         let styleEl = document.getElementById('dynamic-background-style');
-         if (!styleEl) {
-             styleEl = document.createElement('style');
-             styleEl.id = 'dynamic-background-style';
-             document.head.appendChild(styleEl);
-         }
-         
-         styleEl.textContent = `
-             body.has-background-image::before {
-                 background-image: url(${imageUrl}) !important;
-             }
-         `;
-         
+         // Set the uploaded image as body background image
+         body.style.backgroundImage = `url(${imageUrl})`;
          body.classList.add('has-background-image');
      }
      
      function removeBackgroundImage() {
-         // Remove the dynamic style and class
-         const styleEl = document.getElementById('dynamic-background-style');
-         if (styleEl) {
-             styleEl.remove();
-         }
-         
-         body.classList.remove('has-background-image');
+         // Remove background image and class
          body.style.backgroundImage = '';
+         body.classList.remove('has-background-image');
          body.style.background = '';
      }
      
