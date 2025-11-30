@@ -105,8 +105,8 @@
  
      <!-- Export Modal -->
      <div id="export-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-         <div class="bg-gray-800 rounded-lg w-full max-w-md mx-4 p-6">
-             <div class="flex items-center justify-between mb-4">
+         <div class="bg-gray-800 rounded-lg w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+             <div class="flex items-center justify-between mb-4 flex-shrink-0">
                  <h3 class="text-lg font-semibold">Export Theme</h3>
                  <button onclick="hideExportModal()" class="text-gray-400 hover:text-white">
                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +114,8 @@
                      </svg>
                  </button>
              </div>
-             <div class="space-y-2 mb-6">
+             <div class="overflow-y-auto flex-1 pr-2" style="scrollbar-width: thin;">
+                 <div class="space-y-2 mb-6">
                  <label class="flex items-center gap-3 p-3 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition">
                      <input type="radio" name="export-format" value="shell" checked class="text-blue-500">
                      <div>
@@ -227,8 +228,9 @@
                         </div>
                     </label>
                 </div>
-            </div>
-             <div class="flex gap-3">
+                </div>
+             </div>
+             <div class="flex gap-3 flex-shrink-0 mt-6">
                  <button onclick="hideExportModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded font-medium transition">
                      Cancel
                  </button>
