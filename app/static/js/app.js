@@ -92,10 +92,6 @@ const THEME_PRESETS = {
      const clearBtn = document.getElementById('clear-image-btn');
      const previewImg = document.getElementById('preview-image');
      const dropContent = document.getElementById('drop-content');
-     
-     // Background blur elements
-     const bgContainer = document.getElementById('background-blur-container');
-     const bgImage = document.getElementById('background-blur-image');
      const body = document.body;
      
      let selectedFile = null;
@@ -137,36 +133,28 @@ const THEME_PRESETS = {
              previewImg.classList.remove('hidden');
              dropContent.classList.add('hidden');
              
-             // Set background blur image
-             setBackgroundBlur(imageUrl);
+             // Set background image on body with blur
+             setBackgroundImage(imageUrl);
          };
          reader.readAsDataURL(file);
          extractBtn.disabled = false;
          clearBtn.disabled = false;
      }
      
-     function setBackgroundBlur(imageUrl) {
-         if (bgImage && bgContainer) {
-             bgImage.src = imageUrl;
-             bgContainer.classList.remove('hidden');
-             body.classList.add('has-background-image');
-             
-             // Add smooth transition for the blur effect
-             setTimeout(() => {
-                 bgImage.style.opacity = '1';
-             }, 100);
-         }
+     function setBackgroundImage(imageUrl) {
+         // Set the uploaded image as body background image
+         body.style.backgroundImage = `url(${imageUrl})`;
+         body.classList.add('has-background-image');
+         
+         // Add transition for smooth effect
+         body.style.transition = 'background-image 0.5s ease-in-out';
      }
      
-     function removeBackgroundBlur() {
-         if (bgContainer && bgImage) {
-             bgImage.style.opacity = '0';
-             setTimeout(() => {
-                 bgContainer.classList.add('hidden');
-                 body.classList.remove('has-background-image');
-                 bgImage.src = '';
-             }, 300);
-         }
+     function removeBackgroundImage() {
+         // Remove background image and class
+         body.style.backgroundImage = '';
+         body.classList.remove('has-background-image');
+         body.style.transition = '';
      }
      
      // Add clear functionality when user wants to change image
@@ -179,7 +167,7 @@ const THEME_PRESETS = {
          extractBtn.disabled = true;
          clearBtn.disabled = true;
          extractBtn.textContent = 'Extract Colors';
-         removeBackgroundBlur();
+         removeBackgroundImage();
      }
      
      // Add button to clear image
