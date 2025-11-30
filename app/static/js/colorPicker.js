@@ -65,11 +65,11 @@ const COLOR_ORDER = [
      const rgb = hexToRgb(currentColors[colorKey]);
      
      const row = document.createElement('div');
-     row.className = 'color-row glass-morphism rounded-xl p-4 border border-surface-700/30 hover:border-surface-600/50 transition-all group';
+     row.className = 'color-row glass-morphism rounded-lg p-3 border border-surface-700/30 hover:border-surface-600/50 transition-all group';
      row.innerHTML = `
-         <div class="flex items-center gap-4 mb-3">
-             <div class="color-picker-wrapper relative">
-                 <div class="color-swatch w-10 h-10 rounded-xl border-2 border-surface-600/50 shadow-lg group-hover:shadow-xl transition-all cursor-pointer" 
+         <div class="flex items-center gap-3 mb-2">
+             <div class="color-picker-wrapper relative flex-shrink-0">
+                 <div class="color-swatch w-8 h-8 rounded-lg border-2 border-surface-600/50 shadow-md group-hover:shadow-lg transition-all cursor-pointer" 
                       style="background-color: ${currentColors[colorKey]}" 
                       data-color="${colorKey}">
                  </div>
@@ -78,35 +78,29 @@ const COLOR_ORDER = [
                         data-color="${colorKey}"
                         title="Click to open color picker">
              </div>
-             <div class="flex-1">
-                 <span class="text-sm font-medium text-surface-100 group-hover:text-accent-400 transition-colors">${label}</span>
-                 <div class="text-xs text-surface-500 mt-0.5">${colorKey}</div>
-             </div>
-             <div class="relative">
-                 <input type="text" value="${currentColors[colorKey].toUpperCase()}" 
-                        class="hex-input w-24 bg-surface-800/50 border border-surface-700/50 rounded-lg px-3 py-2 text-xs font-mono text-surface-200 placeholder-surface-500 focus:outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-all text-center font-medium"
-                        data-color="${colorKey}">
-                 <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-accent-500/5 to-accent-600/5 opacity-0 focus-within:opacity-100 transition-opacity pointer-events-none"></div>
-             </div>
+             <span class="text-sm font-medium text-surface-100 group-hover:text-accent-400 transition-colors flex-1 truncate">${label}</span>
+             <input type="text" value="${currentColors[colorKey].toUpperCase()}" 
+                    class="hex-input w-20 bg-surface-800/50 border border-surface-700/50 rounded px-2 py-1.5 text-xs font-mono text-surface-200 focus:outline-none focus:border-accent-500 transition-all text-center"
+                    data-color="${colorKey}">
          </div>
-         <div class="slider-container space-y-3">
-             <div class="flex items-center gap-3">
-                 <span class="text-xs font-medium text-red-400 w-4">R</span>
+         <div class="slider-container space-y-1.5">
+             <div class="flex items-center gap-2">
+                 <span class="text-xs font-medium text-red-400 w-3">R</span>
                  <input type="range" min="0" max="255" value="${rgb.r}" 
                         class="slider-r flex-1 modern-slider" data-color="${colorKey}" data-channel="r">
-                 <span class="text-xs font-medium text-surface-400 w-8 text-right bg-surface-800/50 rounded px-2 py-1" data-value="${colorKey}-r">${rgb.r}</span>
+                 <span class="text-xs text-surface-400 w-7 text-right" data-value="${colorKey}-r">${rgb.r}</span>
              </div>
-             <div class="flex items-center gap-3">
-                 <span class="text-xs font-medium text-green-400 w-4">G</span>
+             <div class="flex items-center gap-2">
+                 <span class="text-xs font-medium text-green-400 w-3">G</span>
                  <input type="range" min="0" max="255" value="${rgb.g}" 
                         class="slider-g flex-1 modern-slider" data-color="${colorKey}" data-channel="g">
-                 <span class="text-xs font-medium text-surface-400 w-8 text-right bg-surface-800/50 rounded px-2 py-1" data-value="${colorKey}-g">${rgb.g}</span>
+                 <span class="text-xs text-surface-400 w-7 text-right" data-value="${colorKey}-g">${rgb.g}</span>
              </div>
-             <div class="flex items-center gap-3">
-                 <span class="text-xs font-medium text-blue-400 w-4">B</span>
+             <div class="flex items-center gap-2">
+                 <span class="text-xs font-medium text-blue-400 w-3">B</span>
                  <input type="range" min="0" max="255" value="${rgb.b}" 
                         class="slider-b flex-1 modern-slider" data-color="${colorKey}" data-channel="b">
-                 <span class="text-xs font-medium text-surface-400 w-8 text-right bg-surface-800/50 rounded px-2 py-1" data-value="${colorKey}-b">${rgb.b}</span>
+                 <span class="text-xs text-surface-400 w-7 text-right" data-value="${colorKey}-b">${rgb.b}</span>
              </div>
          </div>
      `;

@@ -63,20 +63,17 @@ const THEME_PRESETS = {
      
      Object.entries(THEME_PRESETS).forEach(([name, colors]) => {
          const btn = document.createElement('button');
-         btn.className = 'preset-card w-full flex items-center gap-4 p-4 bg-surface-800/50 hover:bg-surface-700/50 rounded-xl transition-all text-left border border-surface-700/50 hover:border-surface-600/50 group';
+         btn.className = 'preset-card w-full flex items-center gap-3 p-3 bg-surface-800/50 hover:bg-surface-700/50 rounded-lg transition-all text-left border border-surface-700/50 hover:border-surface-600/50 group';
          btn.innerHTML = `
-             <div class="flex gap-1.5">
-                 <div class="w-4 h-8 rounded-l-lg shadow-sm" style="background-color: ${colors.background}"></div>
-                 <div class="w-4 h-8 shadow-sm" style="background-color: ${colors.red}"></div>
-                 <div class="w-4 h-8 shadow-sm" style="background-color: ${colors.green}"></div>
-                 <div class="w-4 h-8 shadow-sm" style="background-color: ${colors.blue}"></div>
-                 <div class="w-4 h-8 rounded-r-lg shadow-sm" style="background-color: ${colors.foreground}"></div>
+             <div class="flex gap-0.5 flex-shrink-0">
+                 <div class="w-3 h-6 rounded-l shadow-sm" style="background-color: ${colors.background}"></div>
+                 <div class="w-3 h-6 shadow-sm" style="background-color: ${colors.red}"></div>
+                 <div class="w-3 h-6 shadow-sm" style="background-color: ${colors.green}"></div>
+                 <div class="w-3 h-6 shadow-sm" style="background-color: ${colors.blue}"></div>
+                 <div class="w-3 h-6 rounded-r shadow-sm" style="background-color: ${colors.foreground}"></div>
              </div>
-             <div class="flex-1">
-                 <div class="text-sm font-medium text-surface-100 group-hover:text-accent-400 transition-colors">${name}</div>
-                 <div class="text-xs text-surface-500 mt-0.5">Click to apply</div>
-             </div>
-             <svg class="w-4 h-4 text-surface-600 group-hover:text-accent-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <span class="text-sm font-medium text-surface-100 group-hover:text-accent-400 transition-colors truncate flex-1">${name}</span>
+             <svg class="w-3.5 h-3.5 text-surface-600 group-hover:text-accent-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
              </svg>
          `;
