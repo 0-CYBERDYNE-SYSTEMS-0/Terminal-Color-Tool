@@ -89,8 +89,14 @@ const THEME_PRESETS = {
      const dropZone = document.getElementById('drop-zone');
      const fileInput = document.getElementById('file-input');
      const extractBtn = document.getElementById('extract-btn');
+     const clearBtn = document.getElementById('clear-image-btn');
      const previewImg = document.getElementById('preview-image');
      const dropContent = document.getElementById('drop-content');
+     
+     // Background blur elements
+     const bgContainer = document.getElementById('background-blur-container');
+     const bgImage = document.getElementById('background-blur-image');
+     const body = document.body;
      
      let selectedFile = null;
      
@@ -124,13 +130,60 @@ const THEME_PRESETS = {
          selectedFile = file;
          const reader = new FileReader();
          reader.onload = (e) => {
-             previewImg.src = e.target.result;
+             const imageUrl = e.target.result;
+             
+             // Set preview image
+             previewImg.src = imageUrl;
              previewImg.classList.remove('hidden');
              dropContent.classList.add('hidden');
+             
+             // Set background blur image
+             setBackgroundBlur(imageUrl);
          };
          reader.readAsDataURL(file);
          extractBtn.disabled = false;
+         clearBtn.disabled = false;
      }
+     
+     function setBackgroundBlur(imageUrl) {
+         if (bgImage && bgContainer) {
+             bgImage.src = imageUrl;
+             bgContainer.classList.remove('hidden');
+             body.classList.add('has-background-image');
+             
+             // Add smooth transition for the blur effect
+             setTimeout(() => {
+                 bgImage.style.opacity = '1';
+             }, 100);
+         }
+     }
+     
+     function removeBackgroundBlur() {
+         if (bgContainer && bgImage) {
+             bgImage.style.opacity = '0';
+             setTimeout(() => {
+                 bgContainer.classList.add('hidden');
+                 body.classList.remove('has-background-image');
+                 bgImage.src = '';
+             }, 300);
+         }
+     }
+     
+     // Add clear functionality when user wants to change image
+     function resetImageUpload() {
+         fileInput.value = '';
+         selectedFile = null;
+         previewImg.src = '';
+         previewImg.classList.add('hidden');
+         dropContent.classList.remove('hidden');
+         extractBtn.disabled = true;
+         clearBtn.disabled = true;
+         extractBtn.textContent = 'Extract Colors';
+         removeBackgroundBlur();
+     }
+     
+     // Add button to clear image
+     clearBtn.addEventListener('click', resetImageUpload);
      
      extractBtn.addEventListener('click', async () => {
          if (!selectedFile) return;

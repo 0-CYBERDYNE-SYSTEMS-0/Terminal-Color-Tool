@@ -170,6 +170,12 @@
      </style>
  </head>
  <body class="bg-surface-950 text-surface-100 min-h-screen antialiased">
+     <!-- Background Blur Container -->
+     <div id="background-blur-container" class="background-blur-container hidden">
+         <img id="background-blur-image" class="background-blur-image" alt="Background blur">
+         <div class="background-blur-overlay"></div>
+     </div>
+     
      <!-- Modern Header -->
      <header class="glass-morphism border-b border-surface-800/50 px-8 py-6 animate-fade-in">
          <div class="max-w-7xl mx-auto">
@@ -236,6 +242,15 @@
                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
                              </svg>
                              Extract Palette
+                         </span>
+                     </button>
+                     <button id="clear-image-btn" disabled
+                         class="minimal-button w-full mt-2 bg-red-900/20 hover:bg-red-900/30 disabled:opacity-40 disabled:cursor-not-allowed text-red-400 font-medium text-sm px-4 py-2 rounded-lg transition-all border border-surface-700/50 disabled:border-surface-800/50">
+                         <span class="flex items-center justify-center gap-2">
+                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                             </svg>
+                             Clear Image
                          </span>
                      </button>
                  </section>
