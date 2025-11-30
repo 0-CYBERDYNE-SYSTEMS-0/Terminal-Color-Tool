@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 class ExportRequest(BaseModel):
-    format: Literal["ansi", "json", "xresources", "shell", "registry", "iterm2", "winterm", "wezterm"]
+    format: Literal["ansi", "json", "xresources", "shell", "registry", "iterm2", "winterm", "wezterm", "alacritty", "kitty", "hyper", "ghostty", "terminal"]
     theme_data: dict
     wezterm_mode: Literal["complete", "theme-only"] | None = None
 
@@ -76,6 +76,11 @@ async def export_theme(req: ExportRequest):
         "iterm2": _generate_iterm2,
         "winterm": _generate_winterm,
         "wezterm": _generate_wezterm,
+        "alacritty": _generate_alacritty,
+        "kitty": _generate_kitty,
+        "hyper": _generate_hyper,
+        "ghostty": _generate_ghostty,
+        "terminal": _generate_terminal,
     }
     
     extensions = {
@@ -87,6 +92,11 @@ async def export_theme(req: ExportRequest):
         "iterm2": ".itermcolors",
         "winterm": ".json",
         "wezterm": ".lua",
+        "alacritty": ".yml",
+        "kitty": ".conf",
+        "hyper": ".js",
+        "ghostty": ".toml",
+        "terminal": ".terminal",
     }
     
     content_types = {
@@ -98,6 +108,11 @@ async def export_theme(req: ExportRequest):
         "iterm2": "text/plain",
         "winterm": "application/json",
         "wezterm": "text/plain",
+        "alacritty": "text/yaml",
+        "kitty": "text/plain",
+        "hyper": "application/javascript",
+        "ghostty": "text/plain",
+        "terminal": "text/xml",
     }
     
     if req.format not in generators:
@@ -687,8 +702,192 @@ def _hex_to_rgb(hex_color: str) -> tuple:
     hex_color = hex_color.lstrip('#')
     if len(hex_color) == 3:
         hex_color = ''.join([c*2 for c in hex_color])
-    
+
     try:
         return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     except ValueError:
         return (0, 0, 0)  # Default to black if conversion fails
+
+
+def _generate_alacritty(colors: dict, theme_name: str) -> str:
+    """Generate Alacritty YAML configuration."""
+    content = f"""# {theme_name} - Alacritty Color Scheme
+colors:
+  primary:
+    background: '{colors.get('background', '#000000')}'
+    foreground: '{colors.get('foreground', '#ffffff')}'
+  cursor: '{colors.get('cursor', '#ffffff')}'
+  normal:
+    black: '{colors.get('black', '#000000')}'
+    red: '{colors.get('red', '#ff0000')}'
+    green: '{colors.get('green', '#00ff00')}'
+    yellow: '{colors.get('yellow', '#ffff00')}'
+    blue: '{colors.get('blue', '#0000ff')}'
+    magenta: '{colors.get('magenta', '#ff00ff')}'
+    cyan: '{colors.get('cyan', '#00ffff')}'
+    white: '{colors.get('white', '#ffffff')}'
+  bright:
+    black: '{colors.get('bright_black', '#808080')}'
+    red: '{colors.get('bright_red', '#ff8080')}'
+    green: '{colors.get('bright_green', '#80ff80')}'
+    yellow: '{colors.get('bright_yellow', '#ffff80')}'
+    blue: '{colors.get('bright_blue', '#8080ff')}'
+    magenta: '{colors.get('bright_magenta', '#ff80ff')}'
+    cyan: '{colors.get('bright_cyan', '#80ffff')}'
+    white: '{colors.get('bright_white', '#ffffff')}'
+"""
+
+    return content
+
+
+def _generate_kitty(colors: dict, theme_name: str) -> str:
+    """Generate Kitty configuration."""
+    content = f"""# {theme_name} - Kitty Color Scheme
+
+background {colors.get('background', '#000000')}
+foreground {colors.get('foreground', '#ffffff')}
+cursor {colors.get('cursor', '#ffffff')}
+selection_background {colors.get('selection_bg', '#3e3e3e')}
+selection_foreground {colors.get('foreground', '#ffffff')}
+
+color0 {colors.get('black', '#000000')}
+color1 {colors.get('red', '#ff0000')}
+color2 {colors.get('green', '#00ff00')}
+color3 {colors.get('yellow', '#ffff00')}
+color4 {colors.get('blue', '#0000ff')}
+color5 {colors.get('magenta', '#ff00ff')}
+color6 {colors.get('cyan', '#00ffff')}
+color7 {colors.get('white', '#ffffff')}
+
+color8 {colors.get('bright_black', '#808080')}
+color9 {colors.get('bright_red', '#ff8080')}
+color10 {colors.get('bright_green', '#80ff80')}
+color11 {colors.get('bright_yellow', '#ffff80')}
+color12 {colors.get('bright_blue', '#8080ff')}
+color13 {colors.get('bright_magenta', '#ff80ff')}
+color14 {colors.get('bright_cyan', '#80ffff')}
+color15 {colors.get('bright_white', '#ffffff')}
+"""
+
+    return content
+
+
+def _generate_hyper(colors: dict, theme_name: str) -> str:
+    """Generate Hyper JavaScript configuration."""
+    content = f"""// {theme_name} - Hyper Color Theme
+exports.config = {{
+  termCSS: `
+    * {{
+      backgroundColor: {colors.get('background', '#000000')} !important;
+    }}
+    .terminal .xterm-viewport {{
+      background-color: {colors.get('background', '#000000')} !important;
+      color: {colors.get('foreground', '#ffffff')} !important;
+    }}
+    .cursor {{
+      background-color: {colors.get('cursor', '#ffffff')} !important;
+      border-color: {colors.get('cursor', '#ffffff')} !important;
+    }}
+    .selection {{
+      background-color: {colors.get('selection_bg', '#3e3e3e')} !important;
+    }}
+  `,
+  colors: {{
+    black: '{colors.get('black', '#000000')}',
+    red: '{colors.get('red', '#ff0000')}',
+    green: '{colors.get('green', '#00ff00')}',
+    yellow: '{colors.get('yellow', '#ffff00')}',
+    blue: '{colors.get('blue', '#0000ff')}',
+    magenta: '{colors.get('magenta', '#ff00ff')}',
+    cyan: '{colors.get('cyan', '#00ffff')}',
+    white: '{colors.get('white', '#ffffff')}',
+    brightBlack: '{colors.get('bright_black', '#808080')}',
+    brightRed: '{colors.get('bright_red', '#ff8080')}',
+    brightGreen: '{colors.get('bright_green', '#80ff80')}',
+    brightYellow: '{colors.get('bright_yellow', '#ffff80')}',
+    brightBlue: '{colors.get('bright_blue', '#8080ff')}',
+    brightMagenta: '{colors.get('bright_magenta', '#ff80ff')}',
+    brightCyan: '{colors.get('bright_cyan', '#80ffff')}',
+    brightWhite: '{colors.get('bright_white', '#ffffff')}',
+  }},
+}};
+"""
+
+    return content
+
+
+def _generate_ghostty(colors: dict, theme_name: str) -> str:
+    """Generate Ghostty TOML configuration."""
+    content = f"""# {theme_name} - Ghostty Color Theme
+
+[theme]
+name = "{theme_name}"
+
+background = "{colors.get('background', '#000000')}"
+foreground = "{colors.get('foreground', '#ffffff')}"
+cursor = "{colors.get('cursor', '#ffffff')}"
+selection-background = "{colors.get('selection_bg', '#3e3e3e')}"
+selection-foreground = "{colors.get('foreground', '#ffffff')}"
+
+0 = "{colors.get('black', '#000000')}"      # black
+1 = "{colors.get('red', '#ff0000')}"        # red
+2 = "{colors.get('green', '#00ff00')}"      # green
+3 = "{colors.get('yellow', '#ffff00')}"     # yellow
+4 = "{colors.get('blue', '#0000ff')}"       # blue
+5 = "{colors.get('magenta', '#ff00ff')}"    # magenta
+6 = "{colors.get('cyan', '#00ffff')}"       # cyan
+7 = "{colors.get('white', '#ffffff')}"      # white
+8 = "{colors.get('bright_black', '#808080')}"      # bright black
+9 = "{colors.get('bright_red', '#ff8080')}"        # bright red
+10 = "{colors.get('bright_green', '#80ff80')}"     # bright green
+11 = "{colors.get('bright_yellow', '#ffff80')}"    # bright yellow
+12 = "{colors.get('bright_blue', '#8080ff')}"      # bright blue
+13 = "{colors.get('bright_magenta', '#ff80ff')}"   # bright magenta
+14 = "{colors.get('bright_cyan', '#80ffff')}"      # bright cyan
+15 = "{colors.get('bright_white', '#ffffff')}"     # bright white
+"""
+
+    return content
+
+
+def _generate_terminal(colors: dict, theme_name: str) -> str:
+    """Generate Mac Terminal.app plist configuration."""
+    import plistlib
+    from io import BytesIO
+
+    def hex_to_rgb_plist(hex_color):
+        """Convert hex color to RGB tuple for plist (0-65535 range)."""
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 3:
+            hex_color = ''.join([c*2 for c in hex_color])
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        return (r * 257, g * 257, b * 257)
+
+    plist_dict = {
+        'BackgroundColor': hex_to_rgb_plist(colors.get('background', '#000000')),
+        'CursorColor': hex_to_rgb_plist(colors.get('cursor', '#ffffff')),
+        'SelectionColor': hex_to_rgb_plist(colors.get('selection_bg', '#3e3e3e')),
+        'Ansi0Color': hex_to_rgb_plist(colors.get('black', '#000000')),
+        'Ansi1Color': hex_to_rgb_plist(colors.get('red', '#ff0000')),
+        'Ansi2Color': hex_to_rgb_plist(colors.get('green', '#00ff00')),
+        'Ansi3Color': hex_to_rgb_plist(colors.get('yellow', '#ffff00')),
+        'Ansi4Color': hex_to_rgb_plist(colors.get('blue', '#0000ff')),
+        'Ansi5Color': hex_to_rgb_plist(colors.get('magenta', '#ff00ff')),
+        'Ansi6Color': hex_to_rgb_plist(colors.get('cyan', '#00ffff')),
+        'Ansi7Color': hex_to_rgb_plist(colors.get('white', '#ffffff')),
+        'Ansi8Color': hex_to_rgb_plist(colors.get('bright_black', '#808080')),
+        'Ansi9Color': hex_to_rgb_plist(colors.get('bright_red', '#ff8080')),
+        'Ansi10Color': hex_to_rgb_plist(colors.get('bright_green', '#80ff80')),
+        'Ansi11Color': hex_to_rgb_plist(colors.get('bright_yellow', '#ffff80')),
+        'Ansi12Color': hex_to_rgb_plist(colors.get('bright_blue', '#8080ff')),
+        'Ansi13Color': hex_to_rgb_plist(colors.get('bright_magenta', '#ff80ff')),
+        'Ansi14Color': hex_to_rgb_plist(colors.get('bright_cyan', '#80ffff')),
+        'Ansi15Color': hex_to_rgb_plist(colors.get('bright_white', '#ffffff')),
+    }
+
+    buffer = BytesIO()
+    plistlib.dump(plist_dict, buffer)
+    return buffer.getvalue().decode('utf-8')
+
