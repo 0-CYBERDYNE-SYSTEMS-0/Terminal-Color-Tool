@@ -80,3 +80,47 @@
     background-size: 200px 100%;
     animation: shimmer 2s infinite;
 }
+
+/* Color picker wrapper styling */
+.color-picker-wrapper {
+    position: relative;
+}
+
+.color-picker-wrapper:hover .color-swatch {
+    transform: scale(1.05);
+}
+
+.color-picker-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+    border-radius: 50%;
+    border: 2px solid rgba(10, 10, 10, 0.8);
+    opacity: 0.9;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.color-picker-input {
+    cursor: pointer !important;
+}
+
+.color-picker-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 12px;
+}
+
+.color-picker-input::-moz-color-swatch {
+    border: none;
+    border-radius: 12px;
+}

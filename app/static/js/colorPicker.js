@@ -68,9 +68,16 @@ const COLOR_ORDER = [
      row.className = 'color-row glass-morphism rounded-xl p-4 border border-surface-700/30 hover:border-surface-600/50 transition-all group';
      row.innerHTML = `
          <div class="flex items-center gap-4 mb-3">
-             <div class="color-swatch w-10 h-10 rounded-xl border-2 border-surface-600/50 shadow-lg group-hover:shadow-xl transition-all" 
-                  style="background-color: ${currentColors[colorKey]}" 
-                  data-color="${colorKey}"></div>
+             <div class="color-picker-wrapper relative">
+                 <div class="color-swatch w-10 h-10 rounded-xl border-2 border-surface-600/50 shadow-lg group-hover:shadow-xl transition-all cursor-pointer" 
+                      style="background-color: ${currentColors[colorKey]}" 
+                      data-color="${colorKey}">
+                 </div>
+                 <input type="color" value="${currentColors[colorKey]}" 
+                        class="color-picker-input absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        data-color="${colorKey}"
+                        title="Click to open color picker">
+             </div>
              <div class="flex-1">
                  <span class="text-sm font-medium text-surface-100 group-hover:text-accent-400 transition-colors">${label}</span>
                  <div class="text-xs text-surface-500 mt-0.5">${colorKey}</div>
@@ -113,7 +120,29 @@ const COLOR_ORDER = [
          if (e.key === 'Enter') handleHexChange(e);
      });
      
+     row.querySelector('.color-picker-input').addEventListener('input', handleColorPickerChange);
+     
      return row;
+ }
+
+function handleColorPickerChange(e) {
+     const colorKey = e.target.dataset.color;
+     const newColor = e.target.value;
+     
+     currentColors[colorKey] = newColor;
+     const rgb = hexToRgb(newColor);
+     
+     const row = e.target.closest('.color-row');
+     row.querySelector('.color-swatch').style.backgroundColor = newColor;
+     row.querySelector('.hex-input').value = newColor.toUpperCase();
+     row.querySelector('.slider-r').value = rgb.r;
+     row.querySelector('.slider-g').value = rgb.g;
+     row.querySelector('.slider-b').value = rgb.b;
+     row.querySelector(`[data-value="${colorKey}-r"]`).textContent = rgb.r;
+     row.querySelector(`[data-value="${colorKey}-g"]`).textContent = rgb.g;
+     row.querySelector(`[data-value="${colorKey}-b"]`).textContent = rgb.b;
+     
+     if (onColorChange) onColorChange(currentColors);
  }
  
  function handleSliderChange(e) {
@@ -150,6 +179,9 @@ const COLOR_ORDER = [
      const hexInput = document.querySelector(`.hex-input[data-color="${colorKey}"]`);
      if (hexInput) hexInput.value = hexValue.toUpperCase();
      
+     const colorPicker = document.querySelector(`.color-picker-input[data-color="${colorKey}"]`);
+     if (colorPicker) colorPicker.value = hexValue;
+     
      ['r', 'g', 'b'].forEach(ch => {
          const slider = document.querySelector(`input[type="range"][data-color="${colorKey}"][data-channel="${ch}"]`);
          if (slider) slider.value = rgb[ch];
@@ -173,6 +205,9 @@ const COLOR_ORDER = [
              
              const hexInput = document.querySelector(`.hex-input[data-color="${key}"]`);
              if (hexInput) hexInput.value = newColors[key].toUpperCase();
+             
+             const colorPicker = document.querySelector(`.color-picker-input[data-color="${key}"]`);
+             if (colorPicker) colorPicker.value = newColors[key];
              
              ['r', 'g', 'b'].forEach(ch => {
                  const slider = document.querySelector(`input[type="range"][data-color="${key}"][data-channel="${ch}"]`);
