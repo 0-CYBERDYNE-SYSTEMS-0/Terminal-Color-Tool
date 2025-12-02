@@ -4,10 +4,17 @@ A web-based application for creating, visualizing, and exporting terminal color 
 
 Built for developers who live in the terminal. Perfect for vibe coders and AI agent builders who want their terminals to match their aesthetic.
 
-<img width="1313" height="801" alt="Screenshot 2025-11-30 at 02 07 29" src="https://github.com/user-attachments/assets/e43ac7c0-aff1-4b93-a99d-ef79df57e81a" />
+<img width="1463" height="812" alt="Screenshot 2025-11-30 at 14 46 24" src="https://github.com/user-attachments/assets/4e504e02-670a-4961-aff2-53ac8677c304" />
 
 
-<img width="1316" height="816" alt="Screenshot 2025-11-30 at 02 02 00" src="https://github.com/user-attachments/assets/ff746581-db2e-49c2-b868-b5b00d6cd6a5" />
+<img width="1467" height="801" alt="Screenshot 2025-11-30 at 14 46 59" src="https://github.com/user-attachments/assets/691d7f07-2787-44f1-aeb9-12cd25c7fab7" />
+
+
+<img width="1153" height="773" alt="Screenshot 2025-12-01 at 11 30 19" src="https://github.com/user-attachments/assets/a69ca626-cc0a-4250-86d3-40ee86462c1e" />
+
+
+
+
 
 
 
