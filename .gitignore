@@ -85,6 +85,8 @@ themes/custom/
 *.theme
 
 .claude/
+.factory/
+anthropic-skills/
 .claude.md
 claude.md
 agents.md
